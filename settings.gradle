@@ -70,3 +70,7 @@ buildCache {
         removeUnusedEntriesAfterDays = 7
     }
 }
+
+if (file("bitrise-build-cache-gradle.gradle").exists()) {
+    apply(from: "bitrise-build-cache-gradle.gradle")
+}

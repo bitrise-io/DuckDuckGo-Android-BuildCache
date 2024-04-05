@@ -1,0 +1,35 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+
+    dependencies {
+        classpath 'io.bitrise.gradle:remote-cache:1.+'
+    }
+}
+
+import io.bitrise.gradle.cache.BitriseBuildCache
+import io.bitrise.gradle.cache.BitriseBuildCacheServiceFactory
+
+println('[BITRISE BUILD CACHE] Gradle Configuration loaded')
+
+String bitriseBuildCacheWorkspaceID = System.getenv('BITRISE_BUILD_CACHE_WORKSPACE_ID')
+String bitriseBuildCacheAuthToken = System.getenv('BITRISE_BUILD_CACHE_AUTH_TOKEN')
+boolean isLocalCacheEnabled = System.getenv().containsKey("LOCAL_CACHE_ENABLED") ?: false
+println('[BITRISE BUILD CACHE] LOCAL_CACHE_ENABLED: ' + isLocalCacheEnabled)
+buildCache {
+    local {
+        enabled = isLocalCacheEnabled
+    }
+    registerBuildCacheService(BitriseBuildCache.class, BitriseBuildCacheServiceFactory.class)
+    remote(BitriseBuildCache.class) {
+        endpoint = System.getenv('BITRISE_BUILD_CACHE_ENDPOINT') ?: 'grpc://localhost:6666'
+        println('[BITRISE BUILD CACHE] endpoint: ' + endpoint)
+        authToken = bitriseBuildCacheWorkspaceID + ':' + bitriseBuildCacheAuthToken
+        enabled = true
+        push = true
+        debug = false
+        blobValidationLevel = 'warning'
+    }
+}
